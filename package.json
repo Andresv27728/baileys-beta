@@ -1,8 +1,8 @@
 {
-  "name": "ourin-baileys",
+  "name": "yo-soy-yo-baileys",
   "type": "module",
   "version": "0.7.14",
-  "description": "Modded Baileys v7 with interactive message, album, and newsletter support",
+  "description": "YO SOY YO BAILEYS - Modded Baileys v7 with interactive message, album, and newsletter support",
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
