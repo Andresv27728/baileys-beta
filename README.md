@@ -43,6 +43,353 @@ npm install yo-soy-yo-baileys
 
 ---
 
+## 🛡️ Anti-Ban (anti-ban.js)
+
+Sistema de protección contra baneos de WhatsApp con delays inteligentes y presencia humana.
+
+| Export | Descripción |
+|--------|-------------|
+| `ANTI_BAN_CONFIG` | Configuración por defecto |
+| `RateLimiter` | Limitador de velocidad por JID |
+| `PresenceManager` | Simula presencia (typing, grabando, online) |
+| `randomDelay(min, max)` | Delay aleatorio con jitter |
+| `messageDelay(isGroup)` | Delay entre mensajes |
+| `typingDelay(len)` | Delay de escritura según largo del texto |
+| `generateSessionFingerprint()` | Fingerprint único de sesión |
+| `isValidJid(jid)` | Valida formato JID |
+| `sanitizeMessage(text)` | Limpia texto para envío |
+
+```javascript
+import { RateLimiter, PresenceManager, messageDelay, typingDelay } from 'yo-soy-yo-baileys';
+
+const limiter = new RateLimiter(100, 60000); // 100 msgs/minuto
+const presence = new PresenceManager(sock);
+
+if (limiter.canSend(jid)) {
+  await typingDelay(text.length);
+  await presence.typing(jid);
+  await sock.sendMessage(jid, { text });
+}
+
+// Configuración personalizada
+import { ANTI_BAN_CONFIG } from 'yo-soy-yo-baileys';
+ANTI_BAN_CONFIG.MIN_MESSAGE_DELAY = 500;
+ANTI_BAN_CONFIG.MAX_MESSAGE_DELAY = 1500;
+```
+
+---
+
+## 🔄 Smart Reconnect (smart-reconnect.js)
+
+Reconexión inteligente con backoff exponencial y manejo automático de errores.
+
+| Export | Descripción |
+|--------|-------------|
+| `SmartReconnect` | Clase principal de reconexión |
+| `RECONNECT_CONFIG` | Configuración por defecto |
+| `createConnectionHandler(sock, opts)` | Handler completo de conexión |
+| `withRetry(fn, opts)` | Ejecuta función con reintentos |
+
+```javascript
+import { SmartReconnect, createConnectionHandler } from 'yo-soy-yo-baileys';
+
+// Opción 1: Usar handler automático
+const { reconnect } = createConnectionHandler(sock, {
+  maxRetries: 10,
+  initialDelay: 2000,
+  onReconnect: (attempt) => console.log(`Reconectando... intento ${attempt}`),
+  onFatal: (reason) => console.error('Error fatal:', reason)
+});
+
+// Opción 2: Usar clase directamente
+const reconnect = new SmartReconnect(logger, {
+  MAX_RETRIES: 20,
+  INITIAL_DELAY: 2000,
+  MAX_DELAY: 60000,
+  BACKOFF_FACTOR: 2.0
+});
+
+// Ejecutar con reintentos
+const result = await withRetry(
+  () => sock.sendMessage(jid, { text: 'Hola' }),
+  { maxAttempts: 5, delay: 1000 }
+);
+```
+
+---
+
+## 📨 Message Queue (message-queue.js)
+
+Cola de mensajes con prioridades y rate limiting automático.
+
+| Export | Descripción |
+|--------|-------------|
+| `MessageQueue` | Clase principal de la cola |
+| `PRIORITY` | Enum: CRITICAL(0), HIGH(1), NORMAL(2), LOW(3), BACKGROUND(4) |
+| `QUEUE_CONFIG` | Configuración por defecto |
+| `createMessageQueue(sock, opts)` | Crea cola conectada al socket |
+
+```javascript
+import { MessageQueue, PRIORITY, createMessageQueue } from 'yo-soy-yo-baileys';
+
+const queue = new MessageQueue(logger, {
+  MAX_QUEUE_SIZE: 500,
+  PROCESS_INTERVAL: 100
+});
+
+// Encolar mensajes con prioridad
+queue.enqueue(
+  () => sock.sendMessage(jid, { text: 'Urgente!' }),
+  PRIORITY.CRITICAL,
+  { type: 'message', maxAttempts: 5 }
+);
+
+queue.enqueue(
+  () => sock.sendMessage(jid, { text: 'Normal' }),
+  PRIORITY.NORMAL
+);
+
+// Usar helper rápido
+const sendFast = createMessageQueue(sock);
+await sendFast(jid, { text: 'Rápido' }, PRIORITY.HIGH);
+
+// Ver estadísticas
+console.log(queue.getStats());
+// { total: 10, pending: 3, processing: 1, completed: 6, failed: 0 }
+```
+
+---
+
+## 💾 Enhanced Cache (enhanced-cache.js)
+
+Caché de 2 niveles con hot keys, TTL configurable y persistencia a disco.
+
+| Export | Descripción |
+|--------|-------------|
+| `EnhancedCache` | Clase de caché 2 niveles |
+| `CacheManager` | Gestor de múltiples instancias |
+| `CACHE_CONFIG` | Configuración por defecto |
+
+```javascript
+import { EnhancedCache, CacheManager } from 'yo-soy-yo-baileys';
+
+// Crear caché individual
+const cache = new EnhancedCache('messages', {
+  MAX_SIZE: 5000,
+  TTL: 30 * 60 * 1000, // 30 min
+  persistPath: './cache/messages.json'
+});
+
+cache.set('key1', { data: 'valor' });
+const val = cache.get('key1');
+
+// Gestor de múltiples cachés
+const manager = new CacheManager();
+manager.create('profiles', { MAX_SIZE: 1000, TTL: 3600000 });
+manager.create('groups', { MAX_SIZE: 500, TTL: 900000 });
+
+const profiles = manager.get('profiles');
+profiles.set(userId, profileData);
+
+// Estadísticas
+console.log(cache.getStats());
+// { hits: 150, misses: 23, sets: 89, deletes: 12 }
+```
+
+---
+
+## 📊 Enhanced Logger (enhanced-logger.js)
+
+Logger colorizado con categorías, historial y throttling de mensajes repetidos.
+
+| Export | Descripción |
+|--------|-------------|
+| `RyzeLogger` | Clase principal de logger |
+| `createLogger(opts)` | Helper para crear logger |
+| `defaultLogger` | Instancia por defecto |
+
+```javascript
+import { RyzeLogger, createLogger } from 'yo-soy-yo-baileys';
+
+// Crear logger personalizado
+const logger = new RyzeLogger({
+  level: 'info',
+  enableColors: true,
+  enableTimestamp: true,
+  maxHistory: 500
+});
+
+logger.socket('Conectado a WhatsApp');
+logger.message('Mensaje enviado a 521234567890');
+logger.auth('Credenciales cargadas');
+logger.warn('Rate limit alcanzado');
+logger.error('Error de conexión', error);
+
+// Ver historial
+const history = logger.getHistory('error');
+console.log(history);
+
+// Throttling automático - no repite el mismo mensaje 5 veces
+logger.info('Mensaje único');
+```
+
+---
+
+## 🤖 Bot Utils (bot-utils.js)
+
+Utilidades completas para desarrollo de bots: parsing de comandos, permisos, y más.
+
+| Función | Descripción |
+|---------|-------------|
+| `parseCommand(text, prefix)` | Parsea comando con flags y args |
+| `extractMentions(message)` | Extrae todas las menciones |
+| `extractText(message)` | Extrae texto de cualquier tipo de mensaje |
+| `extractQuotedMessage(message)` | Extrae mensaje citado |
+| `isGroupAdmin(participant)` | Verifica si es admin |
+| `isBotAdmin(participant)` | Verifica si el bot es admin |
+| `getSenderJid(message)` | Obtiene JID del remitente |
+| `formatJid(jid, type)` | Formatea JID |
+| `generateMessageId()` | Genera ID de mensaje |
+| `truncateText(text, maxLen)` | Trunca texto con "..." |
+| `escapeMarkdown(text)` | Escapa caracteres Markdown |
+| `formatPhoneNumber(phone)` | Formatea número de teléfono |
+| `CooldownManager` | Gestor de cooldowns por usuario |
+| `PermissionManager` | Gestor de permisos por rol |
+| `createReply(sock, msg, text, opts)` | Helper para responder mensajes |
+| `parseTime(str)` | Parsea strings de tiempo ("5m", "1h") |
+| `formatDuration(ms)` | Formatea milisegundos a legible |
+| `sendFast(jid, content, sock)` | Envío rápido con delay automático |
+
+```javascript
+import { parseCommand, CooldownManager, PermissionManager } from 'yo-soy-yo-baileys';
+
+// Parsear comando
+const parsed = parseCommand('.ban @user --reason=spam --days=7');
+console.log(parsed);
+// { isCommand: true, command: 'ban', args: ['@user'],
+//   flags: { reason: 'spam', days: '7' }, prefix: '.' }
+
+// Gestor de cooldowns
+const cooldowns = new CooldownManager(5000); // 5 segundos
+if (cooldowns.canExecute(userId)) {
+  await procesarComando();
+  cooldowns.setCooldown(userId);
+}
+
+// Gestor de permisos
+const perms = new PermissionManager({
+  admin: ['ban', 'kick', 'mute'],
+  moderator: ['warn', 'mute'],
+  user: ['help', 'info']
+});
+
+if (perms.hasPermission(userRole, 'ban')) {
+  // Proceder con baneo
+}
+```
+
+---
+
+## 🖼️ Rich Message Utils (rich-message-utils.js)
+
+Mensajes enriquecidos con syntax highlighting, tablas, código y sistema unificado de respuesta.
+
+| Export | Descripción |
+|--------|-------------|
+| `tokenizeCode(code, lang)` | Tokeniza código para syntax highlighting |
+| `toUnified(submessages, uuid)` | Convierte a formato unificado |
+| `prepareRichResponseMessage(content)` | Prepara mensaje enriquecido |
+| `wrapToBotForwardedMessage(msg)` | Marca como reenviado de bot |
+| `botMetadataSignature(msg)` | Firma de metadata del bot |
+| `botMetadataCertificate(msg)` | Certificado de metadata |
+
+```javascript
+import { prepareRichResponseMessage, tokenizeCode } from 'yo-soy-yo-baileys';
+
+// Crear mensaje con código con syntax highlighting
+const codeBlocks = tokenizeCode('const x = 42;', 'javascript');
+// [{ highlightType: 'KEYWORD', codeContent: 'const' }, ...]
+
+const richMsg = prepareRichResponseMessage({
+  messageType: 'CODE',
+  codeMetadata: {
+    codeLanguage: 'javascript',
+    codeBlocks
+  }
+});
+
+await sock.sendMessage(jid, richMsg);
+```
+
+---
+
+## 📝 Reporting Utils (reporting-utils.js)
+
+Sistema de tokens de reporte para autenticación de mensajes.
+
+| Export | Descripción |
+|--------|-------------|
+| `getMessageReportingToken(msg)` | Genera token de reporte |
+| `shouldIncludeReportingToken(msg)` | Verifica si debe incluir token |
+
+```javascript
+import { getMessageReportingToken, shouldIncludeReportingToken } from 'yo-soy-yo-baileys';
+
+if (shouldIncludeReportingToken(message)) {
+  const token = getMessageReportingToken(message);
+  // Agregar token al mensaje para autenticación
+}
+```
+
+---
+
+## 🗄️ SQLite Auth State (use-sqlite-auth-state.js)
+
+Sesión de autenticación en SQLite (alternativa a archivos JSON, más rápido y seguro).
+
+| Export | Descripción |
+|--------|-------------|
+| `useSqliteAuthState(opts)` | Crea estado de auth en SQLite |
+| `BufferJSON` | Serializador para Buffers |
+
+> **Requisito:** `npm install better-sqlite3`
+
+```javascript
+import { makeWASocket, useSqliteAuthState } from 'yo-soy-yo-baileys';
+
+const { state, saveCreds } = await useSqliteAuthState({
+  dbPath: './auth.sqlite'
+});
+
+const sock = makeWASocket({
+  auth: state,
+  // ... otras opciones
+});
+
+sock.ev.on('creds.update', saveCreds);
+```
+
+---
+
+## 🎨 Banner (banner.js)
+
+Banner ASCII art animado para consola.
+
+| Export | Descripción |
+|--------|-------------|
+| `YO_SOY_YO_LOGO` | Logo ASCII art |
+| `printBanner(version)` | Muestra banner con animación |
+
+```javascript
+import { printBanner } from 'yo-soy-yo-baileys';
+
+// Se muestra automáticamente al importar
+// O mostrar manualmente:
+printBanner('2.0');
+```
+
+---
+
 ## 🚀 Uso Rápido
 
 ### Conexión Básica con Código de Vinculación
@@ -739,7 +1086,16 @@ Los mensajes programados se guardan en `database/scheduled-messages.json` y sobr
 | Vinculación/desvinculación de comunidades | ❌ No | ✅ Sí |
 | Resolución automática LID→JID | ❌ No | ✅ Sí (lid-utils) |
 | Mensajes programados/cron | ❌ No | ✅ Sí (scheduled-messages) |
-| Banner de inicio colorido | ❌ No | ✅ Sí |
+| Anti-ban inteligente | ❌ No | ✅ Sí (anti-ban) |
+| Reconexión automática | ❌ No | ✅ Sí (smart-reconnect) |
+| Cola de mensajes con prioridades | ❌ No | ✅ Sí (message-queue) |
+| Caché 2 niveles | ❌ No | ✅ Sí (enhanced-cache) |
+| Logger colorizado | ❌ No | ✅ Sí (enhanced-logger) |
+| Utilidades para bots | ❌ No | ✅ Sí (bot-utils) |
+| Syntax highlighting | ❌ No | ✅ Sí (rich-message-utils) |
+| Tokens de reporte | ❌ No | ✅ Sí (reporting-utils) |
+| Auth en SQLite | ❌ No | ✅ Sí (sqlite-auth-state) |
+| Banner animado | ❌ No | ✅ Sí (banner) |
 
 ---
 
