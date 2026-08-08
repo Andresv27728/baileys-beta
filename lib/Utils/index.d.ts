@@ -20,4 +20,5 @@ export * from "./identity-change-handler.js";
 export * from "./stanza-ack.js";
 export * from "./rich-messages.js";
 export * from "./sticker-pack.js";
+export * from "./lid-utils.js";
 //# sourceMappingURL=index.d.ts.map
