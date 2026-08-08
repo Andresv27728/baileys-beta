@@ -545,6 +545,184 @@ yo-soy-yo-baileys/
 
 ---
 
+## 🆕 Funciones Nuevas en v2.0
+
+### 🔧 Utilidades LID (lid-utils)
+
+Sistema de resolución automática de LID (Linked Identity) a JID normal. WhatsApp usa LIDs internamente, esta utilidad los convierte a números de teléfono reales.
+
+#### Funciones disponibles
+
+| Función | Descripción |
+|---------|-------------|
+| `isLid(jid)` | Verifica si un JID es formato LID |
+| `isLidConverted(jid)` | Detecta JID con número LID disfrazado de PN |
+| `lidToJid(jid)` | Convierte LID a formato `@s.whatsapp.net` |
+| `lidToJidSafe(jid)` | Versión segura (retorna `null` si no puede) |
+| `extractNumber(jid)` | Extrae número de cualquier JID |
+| `resolveLidFromParticipants(jid, participants)` | Resuelve LID usando metadata de grupo |
+| `resolveAnyLidToJid(jid, participants)` | Resolución completa con caché |
+| `convertLidArray(jids, participants)` | Convierte array de JIDs |
+| `decodeAndNormalize(jid)` | Decodifica y normaliza JID |
+| `resolveParticipant(msg, sock)` | Resuelve participant desde mensaje |
+| `getParticipantJid(participant)` | Obtiene JID real de participant |
+| `getParticipantJids(participants)` | Array de JIDs reales |
+| `findParticipantByNumber(participants, targetJid)` | Busca participant por número |
+| `cacheParticipantLids(participants)` | Cachea mappings LID-JID |
+| `getCachedJid(lid)` | Obtiene JID del caché |
+| `normalizeToPhoneNumber(jid, participants)` | Convierte a número telefónico |
+| `cacheLidJid(lid, jid)` | Guarda mapping en caché |
+| `resolveFromSock(jid, sock)` | Resuelve usando sock.store |
+| `getLidCacheSize()` | Tamaño del caché |
+| `savePersistentCache()` | Guarda caché a disco |
+
+#### Ejemplo de uso
+
+```javascript
+import { resolveAnyLidToJid, cacheParticipantLids, getParticipantJid } from 'yo-soy-yo-baileys';
+
+// Obtener metadata del grupo
+const metadata = await sock.groupMetadata('120363...@g.us');
+
+// Cachear participant LIDs automáticamente
+// (esto ya se hace automáticamente al obtener metadata)
+
+// Resolver un LID a JID real
+const jidReal = resolveAnyLidToJid('1234567890@lid', metadata.participants);
+console.log(jidReal); // "521234567890@s.whatsapp.net"
+
+// Obtener JID real de un participant
+const participant = metadata.participants[0];
+const jid = getParticipantJid(participant);
+console.log(jid); // "521234567890@s.whatsapp.net"
+
+// El caché se persiste automáticamente en database/lid-cache.json
+```
+
+#### Integración automática
+
+- Los LIDs se resuelven automáticamente al recibir mensajes
+- Los mappings se cachean al obtener metadata de grupos
+- El caché se persiste en `database/lid-cache.json`
+
+---
+
+### ⏰ Mensajes Programados (scheduled-messages)
+
+Sistema completo de mensajes programados con soporte para envío único y recurrente (cron).
+
+#### Funciones disponibles
+
+| Función | Descripción |
+|---------|-------------|
+| `scheduleMessage(jid, content, timestamp)` | Enviar en fecha/hora específica |
+| `recurringMessage(jid, content, cron)` | Mensajes recurrentes con cron |
+| `cancelScheduledMessage(id)` | Cancelar mensaje programado |
+| `deleteScheduledMessage(id)` | Eliminar permanentemente |
+| `listScheduledMessages(filter)` | Listar todos con filtros |
+| `getScheduledMessage(id)` | Obtener por ID |
+| `updateScheduledMessage(id, updates)` | Actualizar contenido |
+| `getSchedulerStats()` | Estadísticas del scheduler |
+| `startScheduler(sock, intervalMs)` | Iniciar scheduler |
+| `stopScheduler()` | Detener scheduler |
+
+#### Ejemplo de uso
+
+```javascript
+import {
+    makeWASocket,
+    startScheduler,
+    scheduleMessage,
+    recurringMessage,
+    cancelScheduledMessage,
+    listScheduledMessages,
+    getSchedulerStats
+} from 'yo-soy-yo-baileys';
+
+const sock = makeWASocket({ /* config */ });
+
+// ⚠️ IMPORTANTE: Iniciar el scheduler al conectar
+sock.ev.on('connection.update', ({ connection }) => {
+    if (connection === 'open') {
+        startScheduler(sock); // Verifica cada 30 segundos
+    }
+});
+
+// Enviar mensaje en 5 minutos
+const id1 = scheduleMessage(
+    '521234567890@s.whatsapp.net',
+    { text: 'Hola! Este es un mensaje programado' },
+    Date.now() + 5 * 60 * 1000
+);
+console.log('Programado:', id1);
+
+// Enviar mensaje en una fecha específica
+const fecha = new Date('2025-12-25T09:00:00');
+const id2 = scheduleMessage(
+    '521234567890@s.whatsapp.net',
+    { text: 'Feliz Navidad!' },
+    fecha
+);
+
+// Enviar todos los días a las 9am
+const id3 = recurringMessage(
+    '521234567890@s.whatsapp.net',
+    { text: 'Buenos días! ☀️' },
+    '0 9 * * *' // cron: minuto hora día mes día_semana
+);
+
+// Enviar lunes a viernes a las 8am
+const id4 = recurringMessage(
+    'grupo@g.us',
+    { text: 'Buenos días equipo!' },
+    '0 8 * * 1-5'
+);
+
+// Enviar cada hora
+const id5 = recurringMessage(
+    '521234567890@s.whatsapp.net',
+    { text: 'Reporte horario' },
+    '0 * * * *'
+);
+
+// Listar mensajes programados
+const pending = listScheduledMessages({ pending: true });
+console.log('Pendientes:', pending.length);
+
+// Ver estadísticas
+const stats = getSchedulerStats();
+console.log(stats);
+// { total: 5, pending: 3, sent: 1, recurring: 1, cancelled: 0, errors: 0 }
+
+// Cancelar un mensaje
+cancelScheduledMessage(id1);
+```
+
+#### Formato Cron
+
+```
+┌───────────── minuto (0-59)
+│ ┌───────────── hora (0-23)
+│ │ ┌───────────── día del mes (1-31)
+│ │ │ ┌───────────── mes (1-12)
+│ │ │ │ ┌───────────── día de la semana (0-6, 0=domingo)
+│ │ │ │ │
+* * * * *
+```
+
+**Ejemplos:**
+- `0 9 * * *` → Todos los días a las 9:00
+- `0 8 * * 1-5` → Lunes a viernes a las 8:00
+- `30 18 * * 0` → Domingos a las 6:30pm
+- `0 */2 * * *` → Cada 2 horas
+- `*/15 * * * *` → Cada 15 minutos
+
+#### Persistencia
+
+Los mensajes programados se guardan en `database/scheduled-messages.json` y sobreviven reinicios del proceso.
+
+---
+
 ## 🔍 Diferencias con `@whiskeysockets/baileys` Original
 
 | Característica | Original | YO SOY YO BAILEYS |
@@ -559,6 +737,9 @@ yo-soy-yo-baileys/
 | Sistema de respuesta unificada | ❌ No | ✅ Sí |
 | Mensajes de pago | ❌ No | ✅ Sí |
 | Vinculación/desvinculación de comunidades | ❌ No | ✅ Sí |
+| Resolución automática LID→JID | ❌ No | ✅ Sí (lid-utils) |
+| Mensajes programados/cron | ❌ No | ✅ Sí (scheduled-messages) |
+| Banner de inicio colorido | ❌ No | ✅ Sí |
 
 ---
 
