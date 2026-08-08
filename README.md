@@ -1070,7 +1070,96 @@ Los mensajes programados se guardan en `database/scheduled-messages.json` y sobr
 
 ---
 
-## 🔍 Diferencias con `@whiskeysockets/baileys` Original
+## 📱 Estados / Status (swgc, fetchStatus)
+
+Sistema de estados de WhatsApp con soporte para perfil (bio) y estados de grupo.
+
+### Funciones disponibles
+
+| Función | Descripción |
+|---------|-------------|
+| `fetchStatus(jids)` | Obtener bio/estado de perfil de usuarios |
+| `swgc(jid, content)` | Publicar estado de grupo (stories de grupo) |
+| `status@broadcast` | JID para broadcast de estados |
+
+### Obtener bio de contacto
+
+```javascript
+import { makeWASocket } from 'yo-soy-yo-baileys';
+
+const sock = makeWASocket({ /* config */ });
+
+// Obtener bio de un contacto
+const status = await sock.fetchStatus('521234567890@s.whatsapp.net');
+console.log(status);
+// { status: "En línea", setAt: Date }
+
+// Obtener bio de varios contactos
+const statuses = await sock.fetchStatus(
+  '521234567890@s.whatsapp.net',
+  '521098765432@s.whatsapp.net'
+);
+statuses.forEach(s => {
+  console.log(`${s.jid}: ${s.status}`);
+});
+```
+
+### Publicar estado de grupo (swgc)
+
+```javascript
+// Publicar texto como estado de grupo
+await sock.swgc('groupid@g.us', {
+  text: 'Estado del grupo actualizado'
+});
+
+// Publicar imagen como estado de grupo
+const { default: fs } = await import('fs');
+const imageBuffer = fs.readFileSync('./foto.jpg');
+
+await sock.swgc('groupid@g.us', {
+  image: imageBuffer,
+  caption: 'Nueva foto del grupo'
+});
+```
+
+### Escuchar estados de contactos
+
+Los estados de contactos se reciben como mensajes normales con el JID `status@broadcast`:
+
+```javascript
+sock.ev.on('messages.upsert', ({ messages }) => {
+  for (const msg of messages) {
+    if (msg.key.remoteJid === 'status@broadcast') {
+      console.log('Estado recibido de:', msg.key.participant);
+      console.log('Contenido:', msg.message);
+
+      // Marcar como visto enviando receipt
+      await sock.readMessages([msg.key]);
+    }
+  }
+});
+```
+
+### Enviar estado personal
+
+```javascript
+// Enviar texto como tu estado
+await sock.sendMessage('status@broadcast', {
+  text: 'Mi nuevo estado'
+});
+
+// Enviar imagen como tu estado
+await sock.sendMessage('status@broadcast', {
+  image: './mi-foto.jpg',
+  caption: 'Mi nueva foto'
+});
+
+// Enviar video como tu estado
+await sock.sendMessage('status@broadcast', {
+  video: './mi-video.mp4',
+  caption: 'Mi nuevo video'
+});
+```
 
 | Característica | Original | YO SOY YO BAILEYS |
 |---------------|----------|-------------------|
