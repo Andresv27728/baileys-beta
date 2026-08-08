@@ -410,8 +410,12 @@ async function startBot() {
 
   // Solicitar código de vinculación
   if (!sock.authState.creds.registered) {
+    // Código random automático
     const code = await sock.requestPairingCode('521234567890')
     console.log(`Código de vinculación: ${code}`)
+
+    // O código personalizado (debe ser exactamente 8 caracteres)
+    // const code = await sock.requestPairingCode('521234567890', 'ABC12345')
   }
 
   // Escuchar eventos
@@ -440,6 +444,45 @@ async function startBot() {
 
 startBot()
 ```
+
+### Código de Vinculación Personalizado
+
+Puedes usar un código personalizado en lugar de uno aleatorio:
+
+```javascript
+import { makeWASocket, useMultiFileAuthState } from 'yo-soy-yo-baileys'
+import { Boom } from '@hapi/boom'
+
+async function startBot() {
+  const { state, saveCreds } = await useMultiFileAuthState('auth_info')
+
+  const sock = makeWASocket({
+    auth: state,
+    printQRInTerminal: false,
+    browser: ['YO SOY YO BAILEYS', 'Chrome', '1.0.0']
+  })
+
+  sock.ev.on('connection.update', async ({ connection }) => {
+    if (connection === 'close') {
+      // Código personalizado (debe ser exactamente 8 caracteres)
+      const customCode = 'ABC12345'
+      const code = await sock.requestPairingCode('521234567890', customCode)
+      console.log(`Tu código personalizado: ${code}`)
+    }
+  })
+
+  sock.ev.on('creds.update', saveCreds)
+}
+
+startBot()
+```
+
+**Requisitos del código personalizado:**
+- Exactamente **8 caracteres**
+- Puede contener letras (A-Z) y números (0-9)
+- Ejemplos: `ABC12345`, `YO-SOY01`, `BOT2024`
+
+> **Nota:** WhatsApp enviará una notificación push al teléfono con el código para ingresarlo en WhatsApp Web/Desktop.
 
 ### Enviar Mensajes
 
@@ -564,7 +607,7 @@ El resultado es un único objeto `sock` con **todos los métodos disponibles**.
 | `sendRawMessage(data)` | Enviar datos binarios crudos |
 | `logout()` | Cerrar sesión |
 | `end(error?)` | Desconectar |
-| `requestPairingCode(phoneNumber)` | Obtener código de vinculación |
+| `requestPairingCode(phoneNumber, customCode?)` | Obtener código de vinculación (custom: 8 caracteres) |
 | `waitForConnectionUpdate(check)` | Esperar actualización de conexión |
 | `generateMessageTag()` | Generar tag único para mensajes |
 
