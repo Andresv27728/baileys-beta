@@ -349,6 +349,622 @@ await sock.sendMessage(jid, {
 
 ---
 
+## Tipos de Mensajes Especiales
+
+Todos los tipos de mensajes disponibles en YO SOY YO BAILEYS con ejemplos listos para usar.
+
+### 1. Texto
+
+```js
+await sock.sendMessage(jid, {
+  text: '👋 *Hola!*\n\n• Viñetas\n• *negrita*\n• _cursiva_\n• ~tachado~\n• ```código```'
+});
+```
+
+### 2. Formato Unicode
+
+```js
+await sock.sendMessage(jid, {
+  text:
+    '╭━━━ᴜɴɪᴄᴏᴅᴇ━━━╮\n┃ 👑 *Bot*\n┃ 📌 Formateo\n┃ 🔗 https://github.com\n╰━━━━━━━━━━━━━╯\n\n_cursiva_ *negrita* ~tachado~\n```código```\n>>> cita\n\n1️⃣ A\n2️⃣ B\n3️⃣ C'
+});
+```
+
+### 3. Imagen
+
+```js
+await sock.sendMessage(jid, {
+  image: { url: 'https://picsum.photos/800/600' },
+  caption: '🖼️ *Imagen* con caption'
+});
+```
+
+### 4. Video
+
+```js
+await sock.sendMessage(jid, {
+  video: { url: 'https://www.w3schools.com/html/mov_bbb.mp4' },
+  caption: '🎬 *Video*',
+  mimetype: 'video/mp4'
+});
+```
+
+### 5. Documento
+
+```js
+await sock.sendMessage(jid, {
+  document: { url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  mimetype: 'application/pdf',
+  fileName: 'doc.pdf',
+  caption: '📄 *Documento*'
+});
+```
+
+### 6. Audio
+
+```js
+// Audio normal
+await sock.sendMessage(jid, {
+  audio: { url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
+  mimetype: 'audio/mpeg',
+  ptt: false
+});
+
+// Nota de voz
+await sock.sendMessage(jid, {
+  audio: { url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3' },
+  mimetype: 'audio/ogg; codecs=opus',
+  ptt: true
+});
+```
+
+### 7. Ubicacion
+
+```js
+await sock.sendMessage(jid, {
+  location: {
+    degreesLatitude: -12.0464,
+    degreesLongitude: -77.0428,
+    name: '🏛️ Plaza',
+    address: 'Lima, Perú'
+  }
+});
+```
+
+### 8. Contacto
+
+```js
+const vcard = 'BEGIN:VCARD\nVERSION:3.0\nFN:Gawr Gura\nORG:Hololive;\nTEL;type=CELL;waid=573133374132:+57 313\nEND:VCARD';
+
+await sock.sendMessage(jid, {
+  contacts: {
+    displayName: 'Gawr Gura',
+    contacts: [{ vcard }]
+  }
+});
+```
+
+### 9. Encuesta (Poll)
+
+```js
+await sock.sendMessage(jid, {
+  poll: {
+    name: '¿Anime favorito?',
+    values: ['Dragon Ball', 'Naruto', 'One Piece', 'AoT', 'JJK'],
+    selectableCount: 1
+  }
+});
+```
+
+### 10. Botones Quick Reply
+
+```js
+await sock.sendMessage(jid, {
+  text: '🔘 *Botones*\n\nSelecciona:',
+  footer: 'Gawr Gura Bot',
+  interactiveButtons: [
+    { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '👋 Saludar', id: '.menu' }) },
+    { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '📊 Stats', id: '.stats' }) },
+    { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '❓ Ayuda', id: '.help' }) }
+  ]
+});
+```
+
+### 11. Lista Interactiva (single_select)
+
+```js
+await sock.sendMessage(jid, {
+  text: '📋 *Menú*',
+  footer: 'Gawr Gura Bot',
+  interactiveButtons: [{
+    name: 'single_select',
+    buttonParamsJson: JSON.stringify({
+      title: '📂 Abrir',
+      sections: [
+        {
+          title: '🎮 Entretenimiento',
+          rows: [
+            { title: 'anime', description: 'Info anime', id: '.an' },
+            { title: 'manga', description: 'Descargar', id: '.mang' },
+            { title: 'musica', description: 'Buscar', id: '.play' }
+          ]
+        },
+        {
+          title: '🛠️ Tools',
+          rows: [
+            { title: 'traducir', description: 'Traducir', id: '.tr' },
+            { title: 'sticker', description: 'Crear', id: '.s' },
+            { title: 'tts', description: 'Voz', id: '.tts' }
+          ]
+        }
+      ]
+    })
+  }]
+});
+```
+
+### 12. Copiar al Portapapeles (cta_copy)
+
+```js
+await sock.sendMessage(jid, {
+  text: '📋 *Copiar*',
+  footer: 'Gawr Gura Bot',
+  interactiveButtons: [
+    { name: 'cta_copy', buttonParamsJson: JSON.stringify({ display_text: '📋 Código', copy_code: 'GURA-2025' }) },
+    { name: 'cta_copy', buttonParamsJson: JSON.stringify({ display_text: '📋 Link', copy_code: 'https://github.com' }) }
+  ]
+});
+```
+
+### 13. Llamar (cta_call)
+
+```js
+await sock.sendMessage(jid, {
+  text: '📞 *Llamar*',
+  footer: 'Gawr Gura Bot',
+  interactiveButtons: [
+    { name: 'cta_call', buttonParamsJson: JSON.stringify({ display_text: '📞 Llamar', phone_number: '+573133374132' }) }
+  ]
+});
+```
+
+### 14. URL (cta_url)
+
+```js
+await sock.sendMessage(jid, {
+  text: '🔗 *URL*',
+  footer: 'Gawr Gura Bot',
+  interactiveButtons: [
+    { name: 'cta_url', buttonParamsJson: JSON.stringify({ display_text: '🌐 GitHub', url: 'https://github.com' }) },
+    { name: 'cta_url', buttonParamsJson: JSON.stringify({ display_text: '📱 WhatsApp', url: 'https://whatsapp.com' }) }
+  ]
+});
+```
+
+### 15. Producto
+
+```js
+await sock.sendMessage(jid, {
+  productMessage: {
+    title: '🎧 Producto Premium',
+    description: 'Producto de demostración con precio y botones.',
+    productId: 'PREMIUM-001',
+    retailerId: 'GuraBot',
+    url: 'https://github.com',
+    priceAmount1000: 50000,
+    currencyCode: 'USD',
+    thumbnail: { url: 'https://picsum.photos/800/600' },
+    body: '🔥 Premium disponible ahora',
+    footer: 'Gawr Gura Store',
+    buttons: [
+      { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '🛒 Comprar', id: 'buy' }) },
+      { name: 'cta_url', buttonParamsJson: JSON.stringify({ display_text: '🌐 Tienda', url: 'https://github.com' }) }
+    ]
+  }
+});
+```
+
+### 16. Tabla (sendTable V1)
+
+```js
+await sock.sendTable(jid,
+  '📊 Tabla Comparativa',
+  ['Feature', 'Node', 'Bun', 'Deno'],
+  [
+    ['Engine', 'V8', 'JSC', 'V8'],
+    ['Speed', '⭐⭐⭐', '⭐⭐⭐⭐', '⭐⭐⭐'],
+    ['npm', '✅', '✅', '❌'],
+    ['TypeScript', '📦', '✅', '✅']
+  ],
+  quoted
+);
+```
+
+### 17. Tabla V2 (sendTable)
+
+```js
+await sock.sendTable(jid,
+  '📊 Precios',
+  ['Plan', 'Precio', 'Users'],
+  [
+    ['Free', '$0', '100'],
+    ['Pro', '$9.99', '1K'],
+    ['Enterprise', '$49.99', '∞']
+  ],
+  quoted
+);
+```
+
+### 18. Bloque de Codigo (sendCodeBlock)
+
+```js
+await sock.sendCodeBlock(jid,
+  'const greet = (name) => {\n  return `¡Hola ${name}!`;\n};\n\nconsole.log(greet("Mundo"));',
+  quoted,
+  { language: 'javascript' }
+);
+```
+
+### 19. Carrusel de Imagenes
+
+```js
+const { generateWAMessageFromContent, prepareWAMessageMedia } = require('@whiskeysockets/baileys');
+
+async function prepareCard(sock, url, text, footer, buttons = []) {
+  const media = await prepareWAMessageMedia(
+    { image: { url } },
+    { upload: sock.waUploadToServer }
+  );
+  return {
+    body: { text },
+    footer: { text: footer },
+    header: {
+      title: '',
+      hasMediaAttachment: true,
+      imageMessage: media.imageMessage
+    },
+    nativeFlowMessage: {
+      buttons: buttons.length ? buttons : [
+        { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '👍', id: 'like' }) }
+      ]
+    }
+  };
+}
+
+const cards = [];
+for (let i = 1; i <= 3; i++) {
+  cards.push(await prepareCard(sock,
+    `https://picsum.photos/800/600?random=${i}`,
+    `📸 *Foto ${i}*\nPaisaje hermoso`,
+    `Card ${i}/3`,
+    [
+      { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '👍 Like', id: `like_${i}` }) },
+      { name: 'cta_url', buttonParamsJson: JSON.stringify({ display_text: '🌐 Ver', url: 'https://github.com' }) }
+    ]
+  ));
+}
+
+const msg = generateWAMessageFromContent(jid, {
+  viewOnceMessage: {
+    message: {
+      messageContextInfo: { deviceListMetadata: {}, deviceListMetadataVersion: 2 },
+      interactiveMessage: {
+        body: { text: '🎠 *Carrusel de imágenes*' },
+        footer: { text: 'Gawr Gura Bot' },
+        header: { title: '', hasMediaAttachment: false },
+        carouselMessage: { cards, messageVersion: 1, carouselCardType: 1 }
+      }
+    }
+  }
+}, {});
+await sock.relayMessage(jid, msg.message, { messageId: msg.key.id });
+```
+
+### 20. Carrusel Simple
+
+```js
+// Mismo que el 19 pero sin botones personalizados por defecto
+const cards = [];
+for (let i = 1; i <= 3; i++) {
+  cards.push(await prepareCard(sock,
+    `https://picsum.photos/800/600?random=${i + 5}`,
+    `📸 *Slide ${i}*`,
+    'Gawr Gura Bot'
+  ));
+}
+// Usar la misma funcion sendCarousel del ejemplo 19
+```
+
+### 21. Carrusel con Botones
+
+```js
+const cards = [];
+for (let i = 1; i <= 2; i++) {
+  cards.push(await prepareCard(sock,
+    `https://picsum.photos/800/600?random=${i + 9}`,
+    `🎮 *Juego ${i}*\nDescripción del juego`,
+    'Games',
+    [
+      { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '📥 Jugar', id: `play_${i}` }) },
+      { name: 'cta_url', buttonParamsJson: JSON.stringify({ display_text: '🌐 Info', url: 'https://github.com' }) }
+    ]
+  ));
+}
+// Enviar con sendCarousel del ejemplo 19
+```
+
+### 22. Video Nota (PTV)
+
+```js
+await sock.sendMessage(jid, {
+  video: { url: 'https://www.w3schools.com/html/mov_bbb.mp4' },
+  ptv: true,
+  mimetype: 'video/mp4'
+});
+```
+
+### 23. Reaccion
+
+```js
+// Enviar mensaje y reaccionar
+const sent = await sock.sendMessage(jid, { text: '👆 Reacciona' });
+await sock.sendMessage(jid, { react: { key: sent.key, text: '👍' } });
+await sock.sendMessage(jid, { react: { key: sent.key, text: '❤️' } });
+```
+
+### 24. Evento
+
+```js
+const startDate = new Date();
+startDate.setDate(startDate.getDate() + 1);
+startDate.setHours(15, 0, 0, 0);
+
+await sock.sendMessage(jid, {
+  event: {
+    name: '🎉 Reunión',
+    description: 'Charlar',
+    startDate,
+    call: 'video'
+  }
+});
+```
+
+### 25. Ver una Vez (View Once)
+
+```js
+await sock.sendMessage(jid, {
+  image: { url: 'https://picsum.photos/800/600' },
+  caption: '👁️ *Una vez*',
+  viewOnce: true
+});
+```
+
+### 26. Invitacion a Grupo
+
+```js
+const { generateWAMessageFromContent } = require('@whiskeysockets/baileys');
+
+const inviteMsg = generateWAMessageFromContent(jid, {
+  groupInviteMessage: {
+    groupJid: '120363427211616326@g.us',
+    inviteCode: 'IKuIEimg3Vl3XeDo14ESuQ',
+    inviteExpiration: Date.now() + 86400000,
+    groupName: 'Mi Grupo',
+    caption: '📢 *Invitación al grupo*'
+  }
+}, {});
+await sock.relayMessage(jid, inviteMsg.message, { messageId: inviteMsg.key.id });
+```
+
+### 27. Formulario (Flow/Galaxy Message)
+
+```js
+const { generateWAMessageFromContent } = require('@whiskeysockets/baileys');
+
+const flowMsg = generateWAMessageFromContent(jid, {
+  viewOnceMessage: {
+    message: {
+      messageContextInfo: { deviceListMetadata: {}, deviceListMetadataVersion: 2 },
+      interactiveMessage: {
+        body: { text: '📝 *Formulario*' },
+        footer: { text: 'Gawr Gura Bot' },
+        header: { title: '📋 Form', hasMediaAttachment: false },
+        nativeFlowMessage: {
+          buttons: [{ name: 'galaxy_message', buttonParamsJson: JSON.stringify({
+            mode: 'published', flow_message_version: '3',
+            flow_token: 'AQAAAAACS5FpgQ_cAAAAAD0QI3s', flow_id: '0',
+            flow_cta: '📋 Abrir', flow_action: 'navigate',
+            flow_action_payload: { screen: 'DATA_FORM', data: {} }
+          })}],
+          messageParamsJson: '{}', messageVersion: 1
+        }
+      }
+    }
+  }
+}, {});
+await sock.relayMessage(jid, flowMsg.message, { messageId: flowMsg.key.id });
+```
+
+### 28. Album de Imagenes
+
+```js
+const { generateWAMessageFromContent, generateWAMessage, jidNormalizedUser } = require('@whiskeysockets/baileys');
+
+const images = [
+  'https://picsum.photos/800/600?random=20',
+  'https://picsum.photos/800/600?random=21',
+  'https://picsum.photos/800/600?random=22'
+];
+
+// Abrir album
+const opener = generateWAMessageFromContent(jid, {
+  messageContextInfo: { messageSecret: crypto.randomBytes(32) },
+  albumMessage: { expectedImageCount: images.length, expectedVideoCount: 0 }
+}, { userJid: jidNormalizedUser(sock.user.id), quoted, upload: sock.waUploadToServer });
+await sock.relayMessage(jid, opener.message, { messageId: opener.key.id });
+
+// Enviar cada imagen como hijo del album
+for (const url of images) {
+  const child = await generateWAMessage(jid, { image: { url }, caption: `📸 *Foto*\n${url}` }, { upload: sock.waUploadToServer });
+  child.message.messageContextInfo = {
+    messageSecret: crypto.randomBytes(32),
+    messageAssociation: { associationType: 1, parentMessageKey: opener.key }
+  };
+  await sock.relayMessage(jid, child.message, { messageId: child.key.id });
+}
+```
+
+### 29. Album de Videos
+
+```js
+const videos = [
+  'https://www.w3schools.com/html/mov_bbb.mp4',
+  'https://www.w3schools.com/html/mov_bbb.mp4'
+];
+
+const opener = generateWAMessageFromContent(jid, {
+  messageContextInfo: { messageSecret: crypto.randomBytes(32) },
+  albumMessage: { expectedImageCount: 0, expectedVideoCount: videos.length }
+}, { userJid: jidNormalizedUser(sock.user.id), quoted, upload: sock.waUploadToServer });
+await sock.relayMessage(jid, opener.message, { messageId: opener.key.id });
+
+for (const url of videos) {
+  const child = await generateWAMessage(jid, { video: { url }, caption: '🎬 *Video*', mimetype: 'video/mp4' }, { upload: sock.waUploadToServer });
+  child.message.messageContextInfo = {
+    messageSecret: crypto.randomBytes(32),
+    messageAssociation: { associationType: 1, parentMessageKey: opener.key }
+  };
+  await sock.relayMessage(jid, child.message, { messageId: child.key.id });
+}
+```
+
+### 30. Tabla como Carrusel
+
+```js
+const tableData = [
+  { feature: 'Engine', node: 'V8', bun: 'JSC', deno: 'V8' },
+  { feature: 'Speed', node: '⭐⭐⭐', bun: '⭐⭐⭐⭐', deno: '⭐⭐⭐' },
+  { feature: 'npm', node: '✅', bun: '✅', deno: '❌' },
+  { feature: 'TypeScript', node: '📦', bun: '✅', deno: '✅' }
+];
+
+const tableCards = [];
+for (const row of tableData) {
+  tableCards.push(await prepareCard(sock,
+    'https://picsum.photos/800/600?random=50',
+    `📊 *${row.feature}*\n\n🟢 Node: ${row.node}\n🟡 Bun: ${row.bun}\n🔵 Deno: ${row.deno}`,
+    'Tabla Comparativa',
+    [
+      { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '📋 Copiar', id: `copy_${row.feature}` }) }
+    ]
+  ));
+}
+// Enviar con sendCarousel del ejemplo 19
+```
+
+### 31. Reels como Carrusel
+
+```js
+const reelData = [
+  { title: 'Receta de Sushi', user: '@chef_jp', likes: '12.5K', views: '89K' },
+  { title: 'Tutorial React', user: '@dev_code', likes: '8.2K', views: '45K' },
+  { title: 'Guitarra Acústica', user: '@music_vibes', likes: '25.1K', views: '200K' }
+];
+
+const reelCards = [];
+for (let i = 0; i < reelData.length; i++) {
+  const r = reelData[i];
+  reelCards.push(await prepareCard(sock,
+    `https://picsum.photos/800/1200?random=${60 + i}`,
+    `📱 *${r.title}*\n\n👤 ${r.user}\n❤️ ${r.likes} likes\n👁️ ${r.views} vistas`,
+    'Reels',
+    [
+      { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '❤️ Like', id: `reel_like_${i}` }) },
+      { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '💬 Comentar', id: `reel_comment_${i}` }) },
+      { name: 'cta_url', buttonParamsJson: JSON.stringify({ display_text: '📤 Compartir', url: 'https://whatsapp.com' }) }
+    ]
+  ));
+}
+// Enviar con sendCarousel del ejemplo 19
+```
+
+### 32. Codigo con Boton de Copiar
+
+```js
+const codeContent = 'const greet = (name) => {\n  return `¡Hola ${name}!`;\n};\n\nconsole.log(greet("Mundo"));';
+
+// Bloque de codigo
+await sock.sendCodeBlock(jid, codeContent, quoted, { language: 'javascript' });
+
+// Boton para copiar
+await sock.sendMessage(jid, {
+  text: '📋 *Código para copiar:*',
+  interactiveButtons: [
+    { name: 'cta_copy', buttonParamsJson: JSON.stringify({ display_text: '📋 Copiar código', copy_code: codeContent }) }
+  ]
+});
+```
+
+### 33. AI + Tabla
+
+```js
+await sock.sendTable(jid,
+  '🤖 AI • Análisis',
+  ['Framework', 'Velocidad', 'Bundle', 'DX'],
+  [
+    ['React', '⭐⭐⭐', '42KB', '⭐⭐⭐⭐'],
+    ['Vue', '⭐⭐⭐⭐', '33KB', '⭐⭐⭐⭐'],
+    ['Svelte', '⭐⭐⭐⭐⭐', '2KB', '⭐⭐⭐⭐⭐'],
+    ['Angular', '⭐⭐⭐', '65KB', '⭐⭐⭐']
+  ],
+  quoted
+);
+```
+
+### 34. Mapa + Botones (buttonsMessage + locationMessage)
+
+```js
+const { generateWAMessageFromContent } = require('@whiskeysockets/baileys');
+
+const locMsg = generateWAMessageFromContent(jid, {
+  buttonsMessage: {
+    contentText: '📍 *Mensaje con ubicación*\n\nBotones sobre un mapa como header.',
+    footerText: 'Gawr Gura Bot',
+    headerType: 6,
+    locationMessage: {
+      degreesLatitude: -12.0464,
+      degreesLongitude: -77.0428,
+      name: '🏛️ Plaza de Armas',
+      address: 'Lima, Perú'
+    },
+    buttons: [
+      { buttonId: '.menu', buttonText: { displayText: '📋 Menú' }, type: 1 },
+      { buttonId: '.help', buttonText: { displayText: '❓ Ayuda' }, type: 1 },
+      { buttonId: '.stats', buttonText: { displayText: '📊 Stats' }, type: 1 }
+    ]
+  }
+}, { quoted });
+await sock.relayMessage(jid, locMsg.message, { messageId: locMsg.key.id });
+```
+
+### 35. Documento + Botones
+
+```js
+await sock.sendMessage(jid, {
+  document: { url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf' },
+  mimetype: 'application/pdf',
+  fileName: 'documento.pdf',
+  caption: '📄 *Documento con botones*',
+  footer: 'Gawr Gura Bot',
+  interactiveButtons: [
+    { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '▶️ Reproducir', id: 'play' }) },
+    { name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text: '📥 Descargar', id: 'download' }) }
+  ]
+});
+```
+
+---
+
 ## Albumes
 
 ```js
