@@ -965,6 +965,170 @@ await sock.sendMessage(jid, {
 
 ---
 
+## Tipos Experimentales (Modded message_builder)
+
+Estos tipos usan las clases `Button`, `Carousel`, `AIRich`/`ORich` del sistema Modded.
+
+### 36. Button Nativo Flow
+
+```js
+import { Button } from 'yo-soy-yo-baileys';
+
+const btn = new Button(sock);
+btn.setTitle('🧪 Botón Nativo Flow');
+btn.setBody('Clase Button del Modded message_builder');
+btn.setFooter('Powered by YO SOY YO');
+btn.addReply('Menu', 'menu');
+btn.addReply('Ayuda', 'help');
+btn.addUrl('GitHub', 'https://github.com/Andresv27728');
+btn.addCopy('Copiar', 'GURA-2025');
+await btn.send(jid);
+```
+
+### 37. Button Copy
+
+```js
+import { Button } from 'yo-soy-yo-baileys';
+
+const btn = new Button(sock);
+btn.setTitle('📋 Copiar al Portapapeles');
+btn.setBody('Toca el botón para copiar');
+btn.setFooter('YO SOY YO');
+btn.addCopy('Copiar Código', 'npm install yo-soy-yo-baileys');
+btn.addCopy('Copiar Repo', 'https://github.com/Andresv27728/baileys-beta');
+await btn.send(jid);
+```
+
+### 38. Button URL + Call
+
+```js
+import { Button } from 'yo-soy-yo-baileys';
+
+const btn = new Button(sock);
+btn.setTitle('🔗 URLs');
+btn.setBody('Enlaces rápidos');
+btn.setFooter('YO SOY YO');
+btn.addUrl('GitHub', 'https://github.com/Andresv27728');
+btn.addUrl('WhatsApp', 'https://whatsapp.com');
+btn.addCall('Llamar', '+573133374132');
+await btn.send(jid);
+```
+
+### 39. AIRich Respuesta
+
+```js
+import { AIRich } from 'yo-soy-yo-baileys';
+
+const rich = new AIRich(sock);
+rich.addText('🤖 *AIRich Response*\n\nRespuesta enriquecida estilo Meta AI.');
+rich.addCode('javascript', 'const bot = "YO SOY YO";\nconsole.log(bot);');
+rich.addTable([
+  ['Feature', 'Estado'],
+  ['Text', '✅'],
+  ['Code', '✅'],
+  ['Table', '✅']
+]);
+rich.addTip('Usa ORich para el mismo efecto');
+rich.addSuggest(['Contame más', 'Siguiente', 'Salir']);
+await rich.send(jid);
+```
+
+### 40. ORich Respuesta
+
+```js
+import { ORich } from 'yo-soy-yo-baileys';
+
+const rich = new ORich(sock);
+rich.addText('✨ *ORich = AIRich*\n\nORich es un alias de AIRich.');
+rich.addImage('https://picsum.photos/800/600');
+rich.addSource([{ sourceTitle: 'Documentation', sourceQuery: 'how to use ORich' }]);
+rich.addSuggest(['Más info', 'Cancelar']);
+await rich.send(jid);
+```
+
+### 41. Carousel Nativo
+
+```js
+import { Carousel } from 'yo-soy-yo-baileys';
+
+const carousel = new Carousel(sock);
+carousel.setTitle('🎠 Carrusel Nativo');
+
+carousel.addCard((card) => {
+  card.image('https://picsum.photos/800/600?random=1');
+  card.title('Tarjeta 1');
+  card.text('Primera tarjeta');
+  card.button('Ver más', 'view_1');
+});
+
+carousel.addCard((card) => {
+  card.image('https://picsum.photos/800/600?random=2');
+  card.title('Tarjeta 2');
+  card.text('Segunda tarjeta');
+  card.button('Ver más', 'view_2');
+});
+
+await carousel.send(jid);
+```
+
+### 42. Carousel Imagen + Botones
+
+```js
+import { Carousel } from 'yo-soy-yo-baileys';
+
+const carousel = new Carousel(sock);
+carousel.setTitle('📸 Imágenes + Botones');
+
+carousel.addCard((card) => {
+  card.image('https://picsum.photos/800/600?random=10');
+  card.title('Paisaje 1');
+  card.text('Montañas hermosas');
+  card.button('❤️ Like', 'like_1');
+});
+
+carousel.addCard((card) => {
+  card.image('https://picsum.photos/800/600?random=11');
+  card.title('Paisaje 2');
+  card.text('Playa paradisíaca');
+  card.button('❤️ Like', 'like_2');
+});
+
+await carousel.send(jid);
+```
+
+### 43. AI Tabla V2
+
+```js
+import { AIRich } from 'yo-soy-yo-baileys';
+
+const rich = new AIRich(sock);
+rich.addText('📊 *AI Tabla V2*\n\nComparativa de frameworks.');
+rich.addTable([
+  ['Framework', 'Velocidad', 'Bundle', 'DX'],
+  ['React', '⭐⭐⭐', '42KB', '⭐⭐⭐⭐'],
+  ['Vue', '⭐⭐⭐⭐', '33KB', '⭐⭐⭐⭐'],
+  ['Svelte', '⭐⭐⭐⭐⭐', '2KB', '⭐⭐⭐⭐⭐'],
+  ['Angular', '⭐⭐⭐', '65KB', '⭐⭐⭐']
+]);
+rich.addSource([{ sourceTitle: 'State of JS 2024' }]);
+await rich.send(jid);
+```
+
+### 44. AI Código V2
+
+```js
+import { AIRich } from 'yo-soy-yo-baileys';
+
+const rich = new AIRich(sock);
+rich.addText('💻 *AI Código V2*\n\nMúltiples bloques de código.');
+rich.addCode('python', 'def saludar(nombre):\n    return f"¡Hola {nombre}!"\n\nprint(saludar("Mundo"))');
+rich.addCode('go', 'package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello, World!")\n}');
+rich.addTip('AIRich soporta múltiples bloques de código');
+await rich.send(jid);
+```
+
+---
+
 ## Albumes
 
 ```js
