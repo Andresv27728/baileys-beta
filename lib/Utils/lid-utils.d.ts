@@ -1,4 +1,5 @@
 import type { WASocket } from '../Socket/index.js';
+import type { WAMessage } from '../Types/Message.js';
 
 export interface LidParticipant {
     id?: string;
@@ -22,7 +23,7 @@ export interface LidMessage {
 export declare const isLid: (jid: string | undefined) => boolean;
 
 /**
- * Cek apakah JID adalah hasil konversi LID yang salah
+ * Cek apakah JID es hasil konversi LID yang salah
  */
 export declare const isLidConverted: (jid: string | undefined) => boolean;
 
@@ -137,3 +138,14 @@ export declare const getLidCacheSize: () => number;
  * Simpan cache ke disk secara manual
  */
 export declare const savePersistentCache: () => void;
+
+/**
+ * Adivina el tipo de dispositivo basado en el message ID (heurístico)
+ * NOTA: Esto es una adivinanza basada en patrones observados, NO datos reales de WhatsApp
+ */
+export declare const guessDeviceFromMessageId: (messageId: string) => string;
+
+/**
+ * Adivina el dispositivo desde un objeto mensaje completo
+ */
+export declare const guessDeviceFromMessage: (message: WAMessage) => string;
